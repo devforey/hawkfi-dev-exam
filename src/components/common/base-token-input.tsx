@@ -76,7 +76,6 @@ export const BaseTokenInput = ({
     data: tokenInfo,
     isLoading,
     isError,
-    error: fetchError,
   } = useQuery({
     queryKey: ["token", inputValue],
     queryFn: () => fetchTokenInfo(inputValue),

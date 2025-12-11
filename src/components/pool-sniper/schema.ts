@@ -8,9 +8,22 @@ export const poolFormSchema = z.object({
   initialPrice: z.number().min(0),
 });
 
-export const positionFormSchema = z.object({
-  // Placeholder for position form fields
-});
+export const positionFormSchema = z
+  .object({
+    presetId: z.number().nullable(),
+    depositAmount: z.number().min(0, "Deposit amount must be positive"),
+    depositOption: z.enum(["0.5", "1", "5", "CUSTOM"]),
+    minPrice: z.number().min(0, "Min price must be positive"),
+    maxPrice: z.number().min(0, "Max price must be positive"),
+  })
+  .refine((data) => data.minPrice <= data.maxPrice, {
+    message: "Min price cannot be greater than max price",
+    path: ["minPrice"],
+  })
+  .refine((data) => data.maxPrice >= data.minPrice, {
+    message: "Max price cannot be less than min price",
+    path: ["maxPrice"],
+  });
 
 export const poolSniperFormSchema = z.object({
   pool: poolFormSchema,

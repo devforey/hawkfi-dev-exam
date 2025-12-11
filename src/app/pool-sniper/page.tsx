@@ -1,21 +1,30 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import {
   Box,
   Typography,
   Button,
   Dialog,
+  DialogContent,
+  DialogActions,
   AppBar,
   Toolbar,
   IconButton,
   Slide,
+  Snackbar,
+  Alert,
+  CircularProgress,
 } from "@mui/material";
 import { TransitionProps } from "@mui/material/transitions";
 import CloseIcon from "@mui/icons-material/Close";
 import { useWallet } from "@jup-ag/wallet-adapter";
 import { WalletButton } from "@/components/solana/wallet-button";
-import { PoolSniperForm } from "@/components/pool-sniper/pool-sniper-form";
+import {
+  PoolSniperForm,
+  PoolSniperFormRef,
+} from "@/components/pool-sniper/pool-sniper-form";
+import { PositionList } from "@/components/pool-sniper/position-list";
 import Link from "next/link";
 import React from "react";
 
@@ -31,6 +40,17 @@ const Transition = React.forwardRef(function Transition(
 export default function PoolSniper() {
   const { connected, publicKey } = useWallet();
   const [open, setOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [snackbar, setSnackbar] = useState<{
+    open: boolean;
+    message: string;
+    severity: "success" | "error" | "info" | "warning";
+  }>({
+    open: false,
+    message: "",
+    severity: "info",
+  });
+  const formRef = useRef<PoolSniperFormRef>(null);
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -39,6 +59,41 @@ export default function PoolSniper() {
   const handleClose = () => {
     setOpen(false);
   };
+
+  const showSnackbar = useCallback(
+    (message: string, severity: "success" | "error" | "info" | "warning") => {
+      setSnackbar({ open: true, message, severity });
+    },
+    []
+  );
+
+  const handleSnackbarClose = () => {
+    setSnackbar((prev) => ({ ...prev, open: false }));
+  };
+
+  const handleSubmit = useCallback(async () => {
+    if (!formRef.current) return;
+
+    setIsSubmitting(true);
+    showSnackbar("Creating position...", "info");
+
+    try {
+      const result = await formRef.current.submitForm();
+      if (result.success) {
+        showSnackbar(
+          `Position created! Pool: ${result.poolAddress?.slice(0, 8)}...`,
+          "success"
+        );
+        handleClose();
+      } else {
+        showSnackbar(result.error || "Failed to create position", "error");
+      }
+    } catch {
+      showSnackbar("An error occurred", "error");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [showSnackbar]);
 
   return (
     <Box
@@ -169,6 +224,13 @@ export default function PoolSniper() {
         open={open}
         onClose={handleClose}
         TransitionComponent={Transition}
+        PaperProps={{
+          sx: {
+            backgroundColor: "#070D0AE5",
+            display: "flex",
+            flexDirection: "column",
+          },
+        }}
       >
         <AppBar
           sx={{
@@ -196,10 +258,82 @@ export default function PoolSniper() {
             </Typography>
           </Toolbar>
         </AppBar>
-        <Box sx={{ backgroundColor: "#070D0AE5", minHeight: "100%" }}>
-          <PoolSniperForm />
-        </Box>
+        <DialogContent
+          sx={{
+            backgroundColor: "#070D0AE5",
+            flex: 1,
+            overflow: "auto",
+            p: 0,
+          }}
+        >
+          <PoolSniperForm ref={formRef} />
+        </DialogContent>
+        <DialogActions
+          sx={{
+            backgroundColor: "#070D0AE5",
+            borderTop: "1px solid rgba(70, 235, 128, 0.2)",
+            p: 2,
+            justifyContent: "space-between",
+          }}
+        >
+          <Button
+            onClick={handleClose}
+            sx={{
+              color: "#46EB80",
+              textTransform: "none",
+              fontSize: "1rem",
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleSubmit}
+            disabled={isSubmitting}
+            sx={{
+              backgroundColor: "#46EB80",
+              color: "#070D0A",
+              textTransform: "none",
+              fontSize: "1rem",
+              px: 4,
+              py: 1.5,
+              borderRadius: "8px",
+              "&:hover": {
+                backgroundColor: "#3dd16f",
+              },
+              "&.Mui-disabled": {
+                backgroundColor: "rgba(70, 235, 128, 0.3)",
+                color: "rgba(7, 13, 10, 0.5)",
+              },
+            }}
+          >
+            {isSubmitting ? (
+              <CircularProgress size={24} sx={{ color: "#070D0A" }} />
+            ) : (
+              "Input new pool details"
+            )}
+          </Button>
+        </DialogActions>
       </Dialog>
+
+      {/* Snackbar for notifications */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+      >
+        <Alert
+          onClose={handleSnackbarClose}
+          severity={snackbar.severity}
+          sx={{ width: "100%" }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+
+      {/* Position List outside dialog */}
+      <PositionList />
     </Box>
   );
 }
