@@ -1,5 +1,10 @@
 export const BASIS_POINT_MAX = 10000;
 
+export const API_ENDPOINTS = {
+  JUPITER_TOKEN_SEARCH: "https://lite-api.jup.ag/tokens/v2/search",
+  JUPITER_PRICE: "https://lite-api.jup.ag/price/v3",
+} as const;
+
 export const QUOTE_TOKEN_MINTS: Record<string, string> = {
   SOL: "So11111111111111111111111111111111111111112",
   USDC: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",

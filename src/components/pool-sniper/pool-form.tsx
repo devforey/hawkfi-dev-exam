@@ -12,12 +12,8 @@ import {
   Button,
 } from "@mui/material";
 import { Controller, useFormContext } from "react-hook-form";
-import { useQuery } from "@tanstack/react-query";
-import {
-  BASE_FEE_OPTIONS,
-  BIN_STEP_OPTIONS,
-  QUOTE_TOKEN_MINTS,
-} from "@/lib/constants";
+import { BASE_FEE_OPTIONS, BIN_STEP_OPTIONS } from "@/lib/constants";
+import { useMarketPrice } from "@/hooks/queries";
 import { PoolSniperFormValues } from "./schema";
 import { BaseTokenInput, PriceInput, TokenInfo } from "@/components/common";
 
@@ -27,26 +23,9 @@ export const PoolForm = () => {
   const [baseTokenInfo, setBaseTokenInfo] = useState<TokenInfo | null>(null);
 
   // Fetch market price when baseTokenInfo changes
-  const { data: marketPrice, isLoading: isPriceLoading } = useQuery({
-    queryKey: ["marketPrice", baseTokenInfo?.address, quoteToken],
-    queryFn: async () => {
-      const quoteTokenMint = QUOTE_TOKEN_MINTS[quoteToken];
-      const baseTokenMint = baseTokenInfo!.address;
-
-      const response = await fetch(
-        `https://lite-api.jup.ag/price/v3?ids=${quoteTokenMint},${baseTokenMint}`
-      );
-      const data = await response.json();
-
-      const quotePrice = data[quoteTokenMint]?.usdPrice;
-      const basePrice = data[baseTokenMint]?.usdPrice;
-
-      if (!quotePrice || !basePrice) return null;
-
-      return basePrice / quotePrice;
-    },
-    enabled: !!baseTokenInfo?.address,
-    staleTime: 30 * 1000, // Cache for 30 seconds
+  const { data: marketPrice, isLoading: isPriceLoading } = useMarketPrice({
+    baseTokenMint: baseTokenInfo?.address,
+    quoteToken,
   });
 
   return (
