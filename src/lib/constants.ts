@@ -1,4 +1,9 @@
 export const BASIS_POINT_MAX = 10000;
+
+export const QUOTE_TOKEN_MINTS: Record<string, string> = {
+  SOL: "So11111111111111111111111111111111111111112",
+  USDC: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+};
 // Mock token data - in a real app, this would come from an API
 const MOCK_TOKENS = [
   {
