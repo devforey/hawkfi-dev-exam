@@ -6,7 +6,9 @@ Please refer to the Notion page provided via email for guidelines and tasks. Bes
 
 **Live Demo**: https://hawkfi-dev-exam-tau.vercel.app/pool-sniper
 
-**Demo Video**: [hawkfi-demo.mov](./demo/hawkfi-demo.mov)
+**Demo Video**:
+
+https://github.com/user-attachments/assets/43c909c2-1ec5-4b15-8095-50adabc0eeb8
 
 ### Instructions
 1. Connect your Wallet
