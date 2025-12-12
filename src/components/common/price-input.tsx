@@ -1,13 +1,9 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import {
-  Box,
-  OutlinedInput,
-  Typography,
-  IconButton,
-} from "@mui/material";
-import { Add, Remove } from "@mui/icons-material";
+import { Box, OutlinedInput, Typography, IconButton } from "@mui/material";
+import { alpha, useTheme } from "@mui/material/styles";
+import { AddCircleOutline, RemoveCircleOutline } from "@mui/icons-material";
 import Decimal from "decimal.js";
 
 export interface PriceInputProps {
@@ -33,23 +29,15 @@ export const PriceInput = ({
   error,
   label,
 }: PriceInputProps) => {
-  const [isEditing, setIsEditing] = useState(false);
+  const theme = useTheme();
   const [inputValue, setInputValue] = useState(value.toString());
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (!isEditing) {
-      setInputValue(value.toString());
-    }
-  }, [value, isEditing]);
-
-  const handleFocus = () => {
-    setIsEditing(true);
     setInputValue(value.toString());
-  };
+  }, [value]);
 
   const handleBlur = () => {
-    setIsEditing(false);
     const parsed = parseFloat(inputValue);
     if (!isNaN(parsed) && parsed >= 0) {
       const clamped = clampValue(parsed);
@@ -95,18 +83,19 @@ export const PriceInput = ({
     onChange(clampValue(newValue));
   };
 
-  const displayValue = isEditing ? inputValue : value.toString();
-  const tokenPairSuffix = quoteToken
-    ? `${quoteToken}/${baseToken || "-"}`
-    : "";
+  const tokenPairSuffix = quoteToken ? `${quoteToken}/${baseToken || "-"}` : "";
+
+  const focusInput = () => {
+    inputRef.current?.focus();
+  };
 
   return (
     <Box sx={{ width: "100%" }}>
       {label && (
         <Typography
-          variant="body2"
+          variant="sectionLabel"
           sx={{
-            color: "rgba(255, 255, 255, 0.7)",
+            color: "custom.textMuted",
             mb: 1,
           }}
         >
@@ -115,20 +104,20 @@ export const PriceInput = ({
       )}
 
       <Box
+        onClick={focusInput}
         sx={{
           display: "flex",
           alignItems: "center",
-          backgroundColor: "rgba(7, 13, 10, 0.8)",
-          border: `1px solid ${error ? "rgba(255, 99, 99, 0.5)" : "rgba(70, 235, 128, 0.2)"}`,
+          backgroundColor: "background.paper",
           borderRadius: "8px",
           p: 0.5,
+          cursor: "pointer",
+          border: "1px solid transparent",
           "&:hover": {
-            borderColor: error
-              ? "rgba(255, 99, 99, 0.7)"
-              : "rgba(70, 235, 128, 0.4)",
+            borderColor: alpha(theme.palette.divider, 0.5),
           },
           "&:focus-within": {
-            borderColor: error ? "#ff6363" : "#46EB80",
+            borderColor: theme.palette.divider,
           },
         }}
       >
@@ -137,96 +126,71 @@ export const PriceInput = ({
           onClick={handleDecrement}
           disabled={value <= min}
           sx={{
-            color: "#46EB80",
-            "&:hover": {
-              backgroundColor: "rgba(70, 235, 128, 0.1)",
-            },
+            color: "#8B948F",
             "&.Mui-disabled": {
-              color: "rgba(70, 235, 128, 0.3)",
+              color: "rgba(139, 148, 143, 0.3)",
             },
           }}
         >
-          <Remove fontSize="small" />
+          <RemoveCircleOutline sx={{ fontSize: 16 }} />
         </IconButton>
 
-        <Box
+        <OutlinedInput
+          inputRef={inputRef}
+          value={inputValue}
+          onChange={handleInputChange}
+          onBlur={handleBlur}
+          onKeyDown={handleKeyDown}
+          size="small"
           sx={{
             flex: 1,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 0.5,
+            backgroundColor: "transparent",
+            "& .MuiOutlinedInput-notchedOutline": {
+              border: "none",
+            },
+            "& input": {
+              fontFamily: "Manrope",
+              fontWeight: 700,
+              fontSize: "16px",
+              lineHeight: "125%",
+              letterSpacing: "0%",
+              textAlign: "right",
+              color: "#C4CAC8",
+              padding: "4px 8px",
+            },
           }}
-        >
-          {isEditing ? (
-            <OutlinedInput
-              inputRef={inputRef}
-              value={inputValue}
-              onChange={handleInputChange}
-              onBlur={handleBlur}
-              onKeyDown={handleKeyDown}
-              autoFocus
-              size="small"
-              sx={{
-                backgroundColor: "transparent",
-                "& .MuiOutlinedInput-notchedOutline": {
-                  border: "none",
-                },
-                "& input": {
-                  color: "rgba(255, 255, 255, 0.8)",
-                  fontFamily: "monospace",
-                  textAlign: "center",
-                  padding: "4px 8px",
-                },
-              }}
-            />
-          ) : (
-            <Typography
-              onClick={handleFocus}
-              sx={{
-                color: "rgba(255, 255, 255, 0.8)",
-                fontFamily: "monospace",
-                cursor: "text",
-                userSelect: "none",
-                py: 0.5,
-                px: 1,
-                "&:hover": {
-                  backgroundColor: "rgba(70, 235, 128, 0.05)",
-                  borderRadius: "4px",
-                },
-              }}
-            >
-              {displayValue}
-            </Typography>
-          )}
-
-          {tokenPairSuffix && (
-            <Typography
-              sx={{
-                color: "rgba(255, 255, 255, 0.5)",
-                fontSize: "0.875rem",
-              }}
-            >
-              {tokenPairSuffix}
-            </Typography>
-          )}
-        </Box>
+          endAdornment={
+            tokenPairSuffix ? (
+              <Typography
+                sx={{
+                  fontFamily: "Manrope",
+                  fontWeight: 700,
+                  fontSize: "16px",
+                  lineHeight: "125%",
+                  letterSpacing: "0%",
+                  textAlign: "right",
+                  color: "#8B948F",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {tokenPairSuffix}
+              </Typography>
+            ) : undefined
+          }
+        />
 
         <IconButton
           size="small"
           onClick={handleIncrement}
           disabled={max !== undefined && value >= max}
           sx={{
-            color: "#46EB80",
-            "&:hover": {
-              backgroundColor: "rgba(70, 235, 128, 0.1)",
-            },
+            color: "#8B948F",
             "&.Mui-disabled": {
-              color: "rgba(70, 235, 128, 0.3)",
+              color: "rgba(139, 148, 143, 0.3)",
             },
           }}
         >
-          <Add fontSize="small" />
+          <AddCircleOutline sx={{ fontSize: 16 }} />
         </IconButton>
       </Box>
 
@@ -234,7 +198,7 @@ export const PriceInput = ({
         <Typography
           variant="caption"
           sx={{
-            color: "#ff6363",
+            color: "error.main",
             mt: 0.5,
             display: "block",
           }}

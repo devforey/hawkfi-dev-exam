@@ -5,19 +5,16 @@ import {
   Box,
   Typography,
   Button,
-  Dialog,
-  DialogContent,
-  DialogActions,
+  Drawer,
   AppBar,
   Toolbar,
   IconButton,
-  Slide,
   Snackbar,
   Alert,
   CircularProgress,
 } from "@mui/material";
-import { TransitionProps } from "@mui/material/transitions";
-import CloseIcon from "@mui/icons-material/Close";
+import { alpha, useTheme } from "@mui/material/styles";
+import { CrosshairSimple, X } from "@phosphor-icons/react";
 import { useWallet } from "@jup-ag/wallet-adapter";
 import { WalletButton } from "@/components/solana/wallet-button";
 import {
@@ -26,21 +23,32 @@ import {
 } from "@/components/pool-sniper/pool-sniper-form";
 import { PositionList } from "@/components/pool-sniper/position-list";
 import Link from "next/link";
-import React from "react";
-
-const Transition = React.forwardRef(function Transition(
-  props: TransitionProps & {
-    children: React.ReactElement<unknown>;
-  },
-  ref: React.Ref<unknown>
-) {
-  return <Slide direction="up" ref={ref} {...props} />;
-});
+import { colors } from "@/theme/tokens/colors";
 
 export default function PoolSniper() {
   const { connected, publicKey } = useWallet();
+  const theme = useTheme();
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [tokenPair, setTokenPair] = useState({ baseToken: "", quoteToken: "" });
+  const [formValidation, setFormValidation] = useState({
+    poolValid: false,
+    positionValid: false,
+  });
+
+  const handleTokenChange = useCallback(
+    (baseToken: string, quoteToken: string) => {
+      setTokenPair({ baseToken, quoteToken });
+    },
+    [],
+  );
+
+  const handleValidationChange = useCallback(
+    (poolValid: boolean, positionValid: boolean) => {
+      setFormValidation({ poolValid, positionValid });
+    },
+    [],
+  );
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
     message: string;
@@ -51,6 +59,7 @@ export default function PoolSniper() {
     severity: "info",
   });
   const formRef = useRef<PoolSniperFormRef>(null);
+  const baseTokenInputRef = useRef<HTMLInputElement>(null);
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -64,7 +73,7 @@ export default function PoolSniper() {
     (message: string, severity: "success" | "error" | "info" | "warning") => {
       setSnackbar({ open: true, message, severity });
     },
-    []
+    [],
   );
 
   const handleSnackbarClose = () => {
@@ -82,7 +91,7 @@ export default function PoolSniper() {
       if (result.success) {
         showSnackbar(
           `Position created! Pool: ${result.poolAddress?.slice(0, 8)}...`,
-          "success"
+          "success",
         );
         handleClose();
       } else {
@@ -99,7 +108,7 @@ export default function PoolSniper() {
     <Box
       sx={{
         minHeight: "100vh",
-        backgroundColor: "#070D0AE5",
+        bgcolor: "custom.backgroundOverlay",
         display: "flex",
         flexDirection: "column",
       }}
@@ -110,7 +119,7 @@ export default function PoolSniper() {
           justifyContent: "space-between",
           alignItems: "center",
           p: 3,
-          borderBottom: "1px solid rgba(70, 235, 128, 0.2)",
+          borderBottom: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
         }}
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
@@ -118,7 +127,7 @@ export default function PoolSniper() {
             <Typography
               variant="h4"
               sx={{
-                color: "#46EB80",
+                color: "primary.main",
                 fontWeight: "bold",
                 "&:hover": {
                   opacity: 0.8,
@@ -131,7 +140,7 @@ export default function PoolSniper() {
           <Typography
             variant="h6"
             sx={{
-              color: "rgba(255, 255, 255, 0.6)",
+              color: "custom.textTertiary",
             }}
           >
             / Pool Sniper
@@ -143,7 +152,7 @@ export default function PoolSniper() {
             <Typography
               variant="body2"
               sx={{
-                color: "#46EB80",
+                color: "primary.main",
                 fontFamily: "monospace",
                 fontSize: "0.875rem",
               }}
@@ -172,7 +181,7 @@ export default function PoolSniper() {
             sx={{
               fontSize: { xs: "2.5rem", sm: "3.5rem", md: "4.5rem" },
               fontWeight: "bold",
-              color: "#46EB80",
+              color: "primary.main",
               textShadow: "2px 2px 4px rgba(0,0,0,0.1)",
               mb: 3,
             }}
@@ -183,7 +192,7 @@ export default function PoolSniper() {
           <Typography
             variant="h6"
             sx={{
-              color: "rgba(255, 255, 255, 0.8)",
+              color: "text.primary",
               mb: 4,
             }}
           >
@@ -197,10 +206,10 @@ export default function PoolSniper() {
               variant="contained"
               onClick={handleClickOpen}
               sx={{
-                backgroundColor: "#46EB80",
-                color: "#070D0A",
+                bgcolor: "primary.main",
+                color: "background.default",
                 "&:hover": {
-                  backgroundColor: "#3dd16f",
+                  bgcolor: "primary.dark",
                 },
                 borderRadius: "12px",
                 px: 4,
@@ -219,69 +228,100 @@ export default function PoolSniper() {
         </Box>
       </Box>
 
-      <Dialog
-        fullScreen
+      <Drawer
+        anchor="bottom"
         open={open}
         onClose={handleClose}
-        TransitionComponent={Transition}
+        SlideProps={{
+          onEntered: () => {
+            baseTokenInputRef.current?.focus();
+          },
+        }}
         PaperProps={{
           sx: {
-            backgroundColor: "#070D0AE5",
+            maxWidth: "600px",
+            width: "100%",
+            mx: "auto",
+            height: "90vh",
+            maxHeight: "90vh",
+            borderTopLeftRadius: "16px",
+            borderTopRightRadius: "16px",
             display: "flex",
             flexDirection: "column",
+            bgcolor: "custom.backgroundOverlay",
+            overflow: "hidden",
           },
         }}
       >
         <AppBar
           sx={{
             position: "relative",
-            backgroundColor: "#070D0AE5",
-            borderBottom: "1px solid rgba(70, 235, 128, 0.2)",
+            bgcolor: "custom.backgroundOverlay",
           }}
         >
-          <Toolbar>
+          <Toolbar sx={{ justifyContent: "space-between" }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <CrosshairSimple size={24} color="#FCFCFC" />
+              <Typography
+                sx={{
+                  fontFamily: '"Space Grotesk"',
+                  fontWeight: 700,
+                  fontSize: "16px",
+                  lineHeight: "150%",
+                  color: "#FCFCFC",
+                }}
+              >
+                Snipe
+                {tokenPair.baseToken && tokenPair.quoteToken
+                  ? ` ${tokenPair.baseToken}-${tokenPair.quoteToken}`
+                  : ""}
+              </Typography>
+            </Box>
             <IconButton
-              edge="start"
+              edge="end"
               color="inherit"
               onClick={handleClose}
               aria-label="close"
-              sx={{ color: "#46EB80" }}
+              sx={{ color: "#FCFCFC" }}
             >
-              <CloseIcon />
+              <X size={24} />
             </IconButton>
-            <Typography
-              sx={{ ml: 2, flex: 1, color: "#46EB80", fontWeight: "bold" }}
-              variant="h6"
-              component="div"
-            >
-              Pool Sniper
-            </Typography>
           </Toolbar>
         </AppBar>
-        <DialogContent
+        <Box
           sx={{
-            backgroundColor: "#070D0AE5",
+            bgcolor: "custom.backgroundOverlay",
             flex: 1,
             overflow: "auto",
             p: 0,
           }}
         >
-          <PoolSniperForm ref={formRef} />
-        </DialogContent>
-        <DialogActions
+          <PoolSniperForm
+            ref={formRef}
+            onTokenChange={handleTokenChange}
+            onValidationChange={handleValidationChange}
+            baseTokenInputRef={baseTokenInputRef}
+          />
+        </Box>
+        <Box
           sx={{
-            backgroundColor: "#070D0AE5",
-            borderTop: "1px solid rgba(70, 235, 128, 0.2)",
+            bgcolor: "custom.backgroundOverlay",
+            borderTop: `1px solid ${colors.neutral[700]}`,
             p: 2,
-            justifyContent: "space-between",
+            display: "flex",
+            alignItems: "center",
+            gap: 2,
           }}
         >
           <Button
             onClick={handleClose}
             sx={{
-              color: "#46EB80",
+              color: "#46E1EB",
               textTransform: "none",
-              fontSize: "1rem",
+              fontFamily: "Manrope",
+              fontWeight: 700,
+              fontSize: "14px",
+              lineHeight: "145%",
             }}
           >
             Cancel
@@ -289,32 +329,49 @@ export default function PoolSniper() {
           <Button
             variant="contained"
             onClick={handleSubmit}
-            disabled={isSubmitting}
+            disabled={
+              isSubmitting ||
+              !formValidation.poolValid ||
+              !formValidation.positionValid
+            }
             sx={{
-              backgroundColor: "#46EB80",
-              color: "#070D0A",
+              flex: 1,
+              height: "40px",
+              bgcolor: "#46E1EB",
+              color: "#06220D",
               textTransform: "none",
-              fontSize: "1rem",
-              px: 4,
-              py: 1.5,
-              borderRadius: "8px",
+              fontFamily: "Manrope",
+              fontWeight: 700,
+              fontSize: "14px",
+              lineHeight: "145%",
+              px: "20px",
+              py: "10px",
+              borderRadius: "12px",
+              border: "2px solid #46E1EB",
               "&:hover": {
-                backgroundColor: "#3dd16f",
+                bgcolor: "#3bc8d4",
+                borderColor: "#3bc8d4",
               },
               "&.Mui-disabled": {
-                backgroundColor: "rgba(70, 235, 128, 0.3)",
-                color: "rgba(7, 13, 10, 0.5)",
+                bgcolor: "#46E1EB",
+                color: "#06220D",
+                borderColor: "#46E1EB",
+                opacity: 0.5,
               },
             }}
           >
             {isSubmitting ? (
-              <CircularProgress size={24} sx={{ color: "#070D0A" }} />
-            ) : (
+              <CircularProgress size={24} sx={{ color: "#06220D" }} />
+            ) : !formValidation.poolValid ? (
               "Input new pool details"
+            ) : !formValidation.positionValid ? (
+              "Input new position details"
+            ) : (
+              `Confirm create new ${tokenPair.baseToken}-${tokenPair.quoteToken} pool and position`
             )}
           </Button>
-        </DialogActions>
-      </Dialog>
+        </Box>
+      </Drawer>
 
       {/* Snackbar for notifications */}
       <Snackbar

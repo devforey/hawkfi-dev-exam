@@ -1,5 +1,8 @@
 export const BASIS_POINT_MAX = 10000;
 
+export const SOL_LOGO_URL =
+  "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png";
+
 export const API_ENDPOINTS = {
   JUPITER_TOKEN_SEARCH: "https://lite-api.jup.ag/tokens/v2/search",
   JUPITER_PRICE: "https://lite-api.jup.ag/price/v3",

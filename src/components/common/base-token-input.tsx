@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, forwardRef } from "react";
 import {
   Box,
   OutlinedInput,
@@ -10,7 +10,8 @@ import {
   InputAdornment,
   IconButton,
 } from "@mui/material";
-import { Close } from "@mui/icons-material";
+import { alpha, useTheme } from "@mui/material/styles";
+import { Close, CheckCircle } from "@mui/icons-material";
 import { useTokenInfo, isValidMintAddress } from "@/hooks/queries";
 import { TokenInfo } from "@/services";
 
@@ -25,23 +26,24 @@ export interface BaseTokenInputProps {
   label?: string;
 }
 
-export const BaseTokenInput = ({
-  value,
-  onChange,
-  onTokenFetched,
-  error,
-  placeholder = "Enter token mint address",
-  label,
-}: BaseTokenInputProps) => {
+export const BaseTokenInput = forwardRef<HTMLInputElement, BaseTokenInputProps>(
+  (
+    {
+      value,
+      onChange,
+      onTokenFetched,
+      error,
+      placeholder = "Enter token mint address",
+      label,
+    },
+    ref
+  ) => {
+  const theme = useTheme();
   const [inputValue, setInputValue] = useState(value);
 
   const shouldFetch = isValidMintAddress(inputValue);
 
-  const {
-    data: tokenInfo,
-    isLoading,
-    isError,
-  } = useTokenInfo(inputValue);
+  const { data: tokenInfo, isLoading, isError } = useTokenInfo(inputValue);
 
   useEffect(() => {
     if (tokenInfo) {
@@ -77,7 +79,7 @@ export const BaseTokenInput = ({
         <Typography
           variant="body2"
           sx={{
-            color: "rgba(255, 255, 255, 0.7)",
+            color: "custom.textMuted",
             mb: 1,
           }}
         >
@@ -86,60 +88,121 @@ export const BaseTokenInput = ({
       )}
 
       <OutlinedInput
+        inputRef={ref}
         value={inputValue}
         onChange={handleInputChange}
-        placeholder={placeholder}
         size="small"
         fullWidth
         error={!!showError}
+        sx={{
+          "& .MuiOutlinedInput-input": {
+            textAlign: "right",
+          },
+        }}
+        startAdornment={
+          <InputAdornment position="start">
+            {showTokenInfo ? (
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 0.75,
+                  mr: 1,
+                }}
+              >
+                <Avatar
+                  src={tokenInfo.logoURI}
+                  alt={tokenInfo.symbol}
+                  sx={{
+                    width: 20,
+                    height: 20,
+                    bgcolor: alpha(theme.palette.primary.main, 0.2),
+                    fontSize: "0.625rem",
+                  }}
+                >
+                  {tokenInfo.symbol?.[0]}
+                </Avatar>
+                <Typography
+                  sx={{
+                    color: "text.primary",
+                    fontSize: "0.875rem",
+                    fontWeight: 500,
+                  }}
+                >
+                  {tokenInfo.symbol}
+                </Typography>
+              </Box>
+            ) : !inputValue ? (
+              <Typography
+                sx={{
+                  color: "text.secondary",
+                  opacity: "0.8",
+                  ...theme.typography.tokenInputPlaceholder,
+                  pointerEvents: "none",
+                }}
+              >
+                {placeholder}
+              </Typography>
+            ) : null}
+          </InputAdornment>
+        }
         endAdornment={
           <InputAdornment position="end">
             {isLoading && (
-              <CircularProgress size={20} sx={{ color: "#46EB80" }} />
+              <CircularProgress size={20} sx={{ color: "primary.main" }} />
             )}
-            {inputValue && !isLoading && (
+            {showTokenInfo && !isLoading && (
+              <Box
+                onClick={handleClear}
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                  "& .check-icon": {
+                    display: "flex",
+                  },
+                  "& .close-icon": {
+                    display: "none",
+                  },
+                  "&:hover .check-icon": {
+                    display: "none",
+                  },
+                  "&:hover .close-icon": {
+                    display: "flex",
+                  },
+                }}
+              >
+                <CheckCircle
+                  className="check-icon"
+                  fontSize="small"
+                  sx={{ color: "primary.main" }}
+                />
+                <Close
+                  className="close-icon"
+                  fontSize="small"
+                  sx={{ color: "text.secondary" }}
+                />
+              </Box>
+            )}
+            {inputValue && !isLoading && !showTokenInfo && (
               <IconButton
                 size="small"
                 onClick={handleClear}
-                sx={{ color: "rgba(255, 255, 255, 0.5)" }}
+                sx={{ color: "text.secondary" }}
               >
                 <Close fontSize="small" />
               </IconButton>
             )}
           </InputAdornment>
         }
-        sx={{
-          backgroundColor: "rgba(7, 13, 10, 0.8)",
-          "& .MuiOutlinedInput-notchedOutline": {
-            borderColor: showError
-              ? "rgba(255, 99, 99, 0.5)"
-              : "rgba(70, 235, 128, 0.2)",
-          },
-          "&:hover .MuiOutlinedInput-notchedOutline": {
-            borderColor: showError
-              ? "rgba(255, 99, 99, 0.7)"
-              : "rgba(70, 235, 128, 0.4)",
-          },
-          "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-            borderColor: showError ? "#ff6363" : "#46EB80",
-          },
-          "& input": {
-            color: "rgba(255, 255, 255, 0.8)",
-            fontFamily: "monospace",
-            fontSize: "0.875rem",
-          },
-          "& input::placeholder": {
-            color: "rgba(255, 255, 255, 0.5)",
-            opacity: 1,
-          },
-        }}
       />
 
       {showError && (
         <Typography
           variant="caption"
           sx={{
-            color: "#ff6363",
+            color: "error.main",
             mt: 0.5,
             display: "block",
           }}
@@ -147,61 +210,8 @@ export const BaseTokenInput = ({
           {errorMessage}
         </Typography>
       )}
-
-      {showTokenInfo && (
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            gap: 1,
-            mt: 1,
-            p: 1,
-            backgroundColor: "rgba(70, 235, 128, 0.1)",
-            borderRadius: "8px",
-            border: "1px solid rgba(70, 235, 128, 0.2)",
-          }}
-        >
-          <Avatar
-            src={tokenInfo.logoURI}
-            alt={tokenInfo.symbol}
-            sx={{
-              width: 24,
-              height: 24,
-              backgroundColor: "rgba(70, 235, 128, 0.2)",
-            }}
-          >
-            {tokenInfo.symbol?.[0]}
-          </Avatar>
-          <Box>
-            <Typography
-              sx={{
-                color: "rgba(255, 255, 255, 0.9)",
-                fontSize: "0.875rem",
-                fontWeight: 500,
-              }}
-            >
-              {tokenInfo.symbol}
-            </Typography>
-            <Typography
-              sx={{
-                color: "rgba(255, 255, 255, 0.6)",
-                fontSize: "0.75rem",
-              }}
-            >
-              {tokenInfo.name}
-            </Typography>
-          </Box>
-          <Typography
-            sx={{
-              color: "rgba(255, 255, 255, 0.5)",
-              fontSize: "0.75rem",
-              ml: "auto",
-            }}
-          >
-            {tokenInfo.decimals} decimals
-          </Typography>
-        </Box>
-      )}
     </Box>
   );
-};
+});
+
+BaseTokenInput.displayName = "BaseTokenInput";

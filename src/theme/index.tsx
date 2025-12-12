@@ -1,17 +1,15 @@
 "use client";
 
-// react
 import { ReactNode } from "react";
-
-// theme
-// TODO: Add palette and typography here as necessary
-import breakpoints from "@/theme/breakpoints";
-import shadows from "@/theme/shadows";
-
-// @mui
 import { CssBaseline } from "@mui/material";
 import { AppRouterCacheProvider } from "@mui/material-nextjs/v13-appRouter";
 import { ThemeOptions, ThemeProvider, createTheme } from "@mui/material/styles";
+
+import breakpoints from "./breakpoints";
+import shadows from "./shadows";
+import palette from "./palette";
+import typography from "./typography";
+import components from "./components";
 
 interface IHawksightThemeProvider {
   children: ReactNode;
@@ -19,21 +17,11 @@ interface IHawksightThemeProvider {
 
 export const getTheme = () => {
   const themeOptions: ThemeOptions = {
-    breakpoints: breakpoints,
-    shadows: shadows,
-    components: {
-      MuiButtonBase: {
-        defaultProps: {
-          disableRipple: true,
-          disableTouchRipple: true,
-        },
-      },
-      MuiButton: {
-        defaultProps: {
-          disableElevation: true,
-        },
-      },
-    },
+    breakpoints,
+    shadows,
+    palette,
+    typography,
+    components,
   };
 
   const theme = createTheme(themeOptions);

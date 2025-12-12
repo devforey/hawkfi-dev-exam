@@ -20,10 +20,10 @@ export const WalletButton = () => {
       variant="contained"
       onClick={handleClick}
       sx={{
-        backgroundColor: "#46EB80",
-        color: "#070D0A",
+        backgroundColor: "primary.main",
+        color: "background.default",
         "&:hover": {
-          backgroundColor: "#3dd16f",
+          backgroundColor: "primary.dark",
         },
         borderRadius: "12px",
         px: 4,

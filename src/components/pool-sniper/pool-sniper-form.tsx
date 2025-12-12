@@ -1,15 +1,20 @@
 "use client";
 
-import { forwardRef, useImperativeHandle } from "react";
+import { forwardRef, useImperativeHandle, useState, useEffect, RefObject } from "react";
 import { Box } from "@mui/material";
-import { FormProvider, useForm } from "react-hook-form";
+import { FormProvider, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Keypair } from "@solana/web3.js";
 import { PoolForm } from "./pool-form";
 import { PositionForm } from "./position-form";
+import { SniperPoolPreferences } from "./sniper-pool-preferences";
 import { poolSniperFormSchema, PoolSniperFormValues } from "./schema";
-import { useMockPositionsStore, MockPosition } from "@/store/mockPositionsStore";
+import {
+  useMockPositionsStore,
+  MockPosition,
+} from "@/store/mockPositionsStore";
 import { calculateNumberOfBins } from "@/utils/dlmm";
+import { TokenInfo } from "@/components/common";
 
 export interface PoolSniperFormRef {
   submitForm: () => Promise<{
@@ -21,8 +26,18 @@ export interface PoolSniperFormRef {
   resetForm: () => void;
 }
 
-export const PoolSniperForm = forwardRef<PoolSniperFormRef>((_, ref) => {
+export interface PoolSniperFormProps {
+  onTokenChange?: (baseToken: string, quoteToken: string) => void;
+  onValidationChange?: (poolValid: boolean, positionValid: boolean) => void;
+  baseTokenInputRef?: RefObject<HTMLInputElement | null>;
+}
+
+export const PoolSniperForm = forwardRef<
+  PoolSniperFormRef,
+  PoolSniperFormProps
+>(({ onTokenChange, onValidationChange, baseTokenInputRef }, ref) => {
   const addPosition = useMockPositionsStore((state) => state.addPosition);
+  const [baseTokenInfo, setBaseTokenInfo] = useState<TokenInfo | null>(null);
 
   const methods = useForm<PoolSniperFormValues>({
     resolver: zodResolver(poolSniperFormSchema),
@@ -43,6 +58,29 @@ export const PoolSniperForm = forwardRef<PoolSniperFormRef>((_, ref) => {
       },
     },
   });
+
+  const quoteToken = useWatch({
+    control: methods.control,
+    name: "pool.quoteToken",
+  });
+
+  // Watch form fields for validation
+  const baseToken = useWatch({ control: methods.control, name: "pool.baseToken" });
+  const binStep = useWatch({ control: methods.control, name: "pool.binStep" });
+  const initialPrice = useWatch({ control: methods.control, name: "pool.initialPrice" });
+  const minPrice = useWatch({ control: methods.control, name: "position.minPrice" });
+  const maxPrice = useWatch({ control: methods.control, name: "position.maxPrice" });
+
+  useEffect(() => {
+    onTokenChange?.(baseTokenInfo?.symbol || "", quoteToken);
+  }, [baseTokenInfo?.symbol, quoteToken, onTokenChange]);
+
+  // Validation effect
+  useEffect(() => {
+    const poolValid = !!baseToken && binStep !== null && initialPrice > 0;
+    const positionValid = minPrice > 0 && maxPrice > 0 && minPrice <= maxPrice;
+    onValidationChange?.(poolValid, positionValid);
+  }, [baseToken, binStep, initialPrice, minPrice, maxPrice, onValidationChange]);
 
   useImperativeHandle(ref, () => ({
     submitForm: async () => {
@@ -79,7 +117,7 @@ export const PoolSniperForm = forwardRef<PoolSniperFormRef>((_, ref) => {
       const numberOfBins = calculateNumberOfBins(
         values.position.minPrice,
         values.position.maxPrice,
-        values.pool.binStep
+        values.pool.binStep,
       );
 
       // Create mock position
@@ -125,8 +163,9 @@ export const PoolSniperForm = forwardRef<PoolSniperFormRef>((_, ref) => {
           gap: 3,
         }}
       >
-        <PoolForm />
-        <PositionForm />
+        <PoolForm onBaseTokenInfoChange={setBaseTokenInfo} baseTokenInputRef={baseTokenInputRef} />
+        <PositionForm baseTokenInfo={baseTokenInfo} />
+        <SniperPoolPreferences />
       </Box>
     </FormProvider>
   );

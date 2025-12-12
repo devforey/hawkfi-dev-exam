@@ -1,17 +1,19 @@
 "use client";
 
 import { Box, Typography } from "@mui/material";
+import { alpha, useTheme } from "@mui/material/styles";
 import { useWallet } from "@jup-ag/wallet-adapter";
 import { WalletButton } from "@/components/solana/wallet-button";
 
 export default function Home() {
   const { connected, publicKey } = useWallet();
+  const theme = useTheme();
 
   return (
     <Box
       sx={{
         minHeight: "100vh",
-        backgroundColor: "#070D0AE5",
+        bgcolor: "custom.backgroundOverlay",
         display: "flex",
         flexDirection: "column",
       }}
@@ -22,13 +24,13 @@ export default function Home() {
           justifyContent: "space-between",
           alignItems: "center",
           p: 3,
-          borderBottom: "1px solid rgba(70, 235, 128, 0.2)",
+          borderBottom: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
         }}
       >
         <Typography
           variant="h4"
           sx={{
-            color: "#46EB80",
+            color: "primary.main",
             fontWeight: "bold",
           }}
         >
@@ -40,7 +42,7 @@ export default function Home() {
             <Typography
               variant="body2"
               sx={{
-                color: "#46EB80",
+                color: "primary.main",
                 fontFamily: "monospace",
                 fontSize: "0.875rem",
               }}
@@ -69,7 +71,7 @@ export default function Home() {
             sx={{
               fontSize: { xs: "2.5rem", sm: "3.5rem", md: "4.5rem" },
               fontWeight: "bold",
-              color: "#46EB80",
+              color: "primary.main",
               textShadow: "2px 2px 4px rgba(0,0,0,0.1)",
               mb: 3,
             }}
@@ -80,7 +82,7 @@ export default function Home() {
           <Typography
             variant="h6"
             sx={{
-              color: "rgba(255, 255, 255, 0.8)",
+              color: "text.primary",
               mb: 4,
             }}
           >
