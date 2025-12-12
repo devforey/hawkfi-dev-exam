@@ -8,18 +8,17 @@ Please refer to the Notion page provided via email for guidelines and tasks. Bes
 
 **Demo Video**:
 
-<video src="./demo/hawkfi-demo.mp4" controls width="600"></video>
-
 ### Instructions
+
 1. Connect your Wallet
 2. Enter COPE base token: `8HGyAAB1yoM1ttS7pXjHMa3dukTFGQggnFFH3hJZgzQh`
 
 ## Work Logs
 
-| Date | Duration | Tasks |
-|------|----------|-------|
-| Dec 10 | ~1h | Checking requirements, researching |
-| Dec 11 | ~3h (morning) | Creating functional Pool and Position forms |
+| Date   | Duration      | Tasks                                                                   |
+| ------ | ------------- | ----------------------------------------------------------------------- |
+| Dec 10 | ~1h           | Checking requirements, researching                                      |
+| Dec 11 | ~3h (morning) | Creating functional Pool and Position forms                             |
 | Dec 12 | ~4h (morning) | Polishing form behavior, applying Figma UI/styling, minor final touches |
 
 ## Remaining Todos
@@ -46,10 +45,10 @@ Please refer to the Notion page provided via email for guidelines and tasks. Bes
 
 ## Exam Documentation
 
-| Folder | Description |
-|--------|-------------|
-| [`exam_docs/ai_prompts/ai-assisted-coding/`](./exam_docs/ai_prompts/ai-assisted-coding/) | AI prompts for implementing form components |
-| [`exam_docs/ai_prompts/requirements_grooming/`](./exam_docs/ai_prompts/requirements_grooming/) | Requirements research and specifications |
+| Folder                                                                                         | Description                                 |
+| ---------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| [`exam_docs/ai_prompts/ai-assisted-coding/`](./exam_docs/ai_prompts/ai-assisted-coding/)       | AI prompts for implementing form components |
+| [`exam_docs/ai_prompts/requirements_grooming/`](./exam_docs/ai_prompts/requirements_grooming/) | Requirements research and specifications    |
 
 ## Getting Started
 
